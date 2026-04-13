@@ -29,12 +29,17 @@ public class CacheClient {
     }
 
     public void set(String key, Object value, Long time, TimeUnit unit){
+        //写入redis
+        stringRedisTemplate.opsForValue().set(key, JSONUtil.toJsonStr(value),time,unit);
+    }
+
+    public void setWithLogicalExpire(String key, Object value, Long time, TimeUnit unit){
         //设置逻辑过期
         RedisData redisData = new RedisData();
         redisData.setData(value);
         redisData.setExpireTime(LocalDateTime.now().plusSeconds(unit.toSeconds(time)));
         //写入redis
-        stringRedisTemplate.opsForValue().set(key, JSONUtil.toJsonStr(value),time,unit);
+        stringRedisTemplate.opsForValue().set(key, JSONUtil.toJsonStr(redisData),time,unit);
     }
 
     public  <R,ID> R queryWithPassThrough(String keyPrefix, ID id, Class<R> type, Function<ID,R> dbFallback,Long time, TimeUnit unit){
@@ -103,7 +108,7 @@ public class CacheClient {
                     //查询数据库
                     R r1=dbFallback.apply(id);
                     //写入redis
-                    this.set(key,r1,time,unit);
+                    this.setWithLogicalExpire(key,r1,time,unit);
 
                 } catch (Exception e) {
                     throw new RuntimeException(e);
