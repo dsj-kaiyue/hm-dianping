@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Ignore application.yaml, which may contain sensitive information such as database credentials
+src/main/resources/application.yaml
